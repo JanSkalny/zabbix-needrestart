@@ -1,0 +1,58 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 83b9e6be23f44af392e0bc8ea28c0502
+      template: 'needrestart by Zabbix agent'
+      name: 'needrestart by Zabbix agent'
+      description: 'needrestart monitoring for debian/ubuntu systems'
+      groups:
+        - name: Templates
+      items:
+        - uuid: 3d130466106e4a9fa3202587de736807
+          name: 'needrestart current kernel'
+          key: needrestart.kernel-current
+          delay: 10m
+          value_type: TEXT
+          trends: '0'
+        - uuid: d5ea1ab93289445c9ba46d4f46b44980
+          name: 'needrestart expected kernel'
+          key: needrestart.kernel-expected
+          delay: 10m
+          value_type: TEXT
+          trends: '0'
+        - uuid: 2c69d7d2834e4a0887a2f662cd929a7a
+          name: 'needrestart services'
+          key: needrestart.services
+          delay: 10m
+          value_type: TEXT
+          trends: '0'
+          triggers:
+            - uuid: 363acf399fc946d98b6da09569167b42
+              expression: 'last(/needrestart by Zabbix agent/needrestart.services)<>""'
+              name: 'Restart of services is required'
+              status: DISABLED
+              priority: INFO
+        - uuid: 2ed99154f85b4944a487140c05469ad3
+          name: 'needrestart number of services'
+          type: DEPENDENT
+          key: needrestart.services-count
+          delay: '0'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'return value.split(/\r?\n/).length;'
+          master_item:
+            key: needrestart.services
+          triggers:
+            - uuid: 66924d244298477b9132ed14684565e1
+              expression: 'last(/needrestart by Zabbix agent/needrestart.services-count)>0'
+              name: 'Restart of services is requried'
+              priority: INFO
+  triggers:
+    - uuid: 53818e226e044ffb91acbf14c03e31b7
+      expression: 'last(/needrestart by Zabbix agent/needrestart.kernel-current) <> last(/needrestart by Zabbix agent/needrestart.kernel-expected)'
+      name: 'Restart is required to boot new kernel'
+      priority: INFO
