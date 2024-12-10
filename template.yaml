@@ -43,7 +43,7 @@ zabbix_export:
           preprocessing:
             - type: JAVASCRIPT
               parameters:
-                - 'return value.split(/\r?\n/).length - 1;'
+                - 'return value.trim() === "" ? 0 : value.split(/\r?\n/).length;'
           master_item:
             key: needrestart.services
           triggers:
